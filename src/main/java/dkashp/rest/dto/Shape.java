@@ -2,9 +2,6 @@ package dkashp.rest.dto;
 
 import javax.persistence.*;
 
-import org.hibernate.annotations.ForceDiscriminator;
-
-
 @Entity
 @Table(name = "SHAPES")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -17,12 +14,12 @@ public abstract class Shape {
 	private int id;
 	
 	@Column(name="SHAPE_SQUARE")
-	private Double square;
+	private double square;
 	
 	public Shape() {
 	}
 	
-	public Shape(int id, Double square) {
+	public Shape(int id, double square) {
 		this.id = id;
 		this.square = square;
 	}
@@ -35,11 +32,11 @@ public abstract class Shape {
 		this.id = id;
 	}
 
-	public Double getSquare() {
+	public double getSquare() {
 		return square;
 	}
 
-	public void setSquare(Double square) {
+	public void setSquare(double square) {
 		this.square = square;
 	}
 }
