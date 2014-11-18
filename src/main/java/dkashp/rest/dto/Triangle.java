@@ -4,7 +4,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name="TRIANGLES")
-@DiscriminatorValue("Triangle")
+@PrimaryKeyJoinColumn(name="SHAPE_ID")
 public class Triangle extends Shape{
 
 	@Column(name="TRIANGLE_BASE")
@@ -12,6 +12,16 @@ public class Triangle extends Shape{
 	
 	@Column(name="TRIANGLE_HEIGHT")
 	private int height;
+	
+	public Triangle(){
+		
+	}
+	
+	public Triangle(double square, int base, int height) {
+		super(square);
+		this.base = base;
+		this.height = height;
+	}
 
 	public int getBase() {
 		return base;

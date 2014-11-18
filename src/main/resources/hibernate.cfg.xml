@@ -13,5 +13,7 @@
 		<property name="show_sql">true</property>
 		<mapping class="dkashp.rest.dto.Shape"></mapping>
 		<mapping class="dkashp.rest.dto.Circle"></mapping>
+		<mapping class="dkashp.rest.dto.Rectangle"></mapping>
+		<mapping class="dkashp.rest.dto.Triangle"></mapping>
 	</session-factory>
 </hibernate-configuration>

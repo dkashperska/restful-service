@@ -5,11 +5,10 @@ import javax.persistence.*;
 @Entity
 @Table(name = "SHAPES")
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name="SHAPE_TYPE", 
-	discriminatorType=DiscriminatorType.STRING)
-public abstract class Shape {
+public class Shape {
 
 	@Id
+	@GeneratedValue
 	@Column(name="SHAPE_ID")
 	private int id;
 	
@@ -19,8 +18,7 @@ public abstract class Shape {
 	public Shape() {
 	}
 	
-	public Shape(int id, double square) {
-		this.id = id;
+	public Shape( double square) {
 		this.square = square;
 	}
 

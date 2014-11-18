@@ -4,10 +4,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name="CIRCLES")
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name="SHAPE_TYPE", 
-	discriminatorType=DiscriminatorType.STRING)
-@DiscriminatorValue("Circle")
+@PrimaryKeyJoinColumn(name="SHAPE_ID")
 public class Circle extends Shape {
 	
 	@Column(name="CIRCLE_RADIUS")
@@ -17,8 +14,8 @@ public class Circle extends Shape {
 		
 	}
 	
-	public Circle(int id, double square, int radius) {
-		super(id, square);
+	public Circle(double square, int radius) {
+		super(square);
 		this.radius = radius;
 	}
 
