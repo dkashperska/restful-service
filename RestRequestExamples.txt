@@ -1,0 +1,89 @@
+1. Create circle
+POST
+/restfull-service/rest/circle/create
+Content-Type=application/json
+JSON={
+  "radius": 3
+}
+------------------------------------------
+2. Get circle
+GET
+/restfull-service/rest/circle/4
+------------------------------------------
+3. Update circle
+PUT
+/restfull-service/rest/circle/update
+Content-Type=application/json
+JSON={
+  "id":4,
+  "radius": 7
+}
+------------------------------------------
+4. Delete circle
+DELETE
+/restfull-service/rest/circle/4
+------------------------------------------
+5. Create rectangle
+POST 
+/restfull-service/rest/rectangle/create
+Content-Type=application/json
+JSON={
+  "width": 3,
+  "length": 4
+}
+------------------------------------------
+6. Get rectangle
+GET
+/restfull-service/rest/rectangle/5
+------------------------------------------
+7. Update rectangle
+PUT
+/restfull-service/rest/rectangle/update
+Content-Type=application/json
+JSON={
+  "id":5,
+  "width": 7
+}
+------------------------------------------
+8. Delete rectangle
+DELETE
+/localhost:8080/restfull-service/rest/rectangle/5
+------------------------------------------
+9. Create triangle
+POST
+/restfull-service/rest/triangle/create
+Content-Type=application/json
+JSON={
+  "base": 5,
+  "height": 4
+}
+------------------------------------------
+10. Get triangle
+GET
+/restfull-service/rest/triangle/8
+------------------------------------------
+11. Update triangle
+PUT
+/restfull-service/rest/triangle/update
+Content-Type=application/json
+JSON={
+  "id":8,
+  "base": 7
+}
+------------------------------------------
+12. Delete triangle
+DELETE
+/restfull-service/rest/triangle/8
+------------------------------------------
+13. Get list of squares for particular shapes
+POST
+/restfull-service/rest/shape/square
+Content-Type=application/json
+JSON={
+  "ids":
+    [ 
+      9,
+      10,
+      11
+  ]
+}
