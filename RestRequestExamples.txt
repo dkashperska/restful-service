@@ -1,6 +1,6 @@
 1. Create circle
 POST
-/restfull-service/rest/circle/create
+/restfull-service/rest/circles
 Content-Type=application/json
 JSON={
   "radius": 3
@@ -8,11 +8,11 @@ JSON={
 ------------------------------------------
 2. Get circle
 GET
-/restfull-service/rest/circle/4
+/restfull-service/rest/circles/4
 ------------------------------------------
 3. Update circle
 PUT
-/restfull-service/rest/circle/update
+/restfull-service/rest/circles/4
 Content-Type=application/json
 JSON={
   "id":4,
@@ -21,11 +21,11 @@ JSON={
 ------------------------------------------
 4. Delete circle
 DELETE
-/restfull-service/rest/circle/4
+/restfull-service/rest/circles/4
 ------------------------------------------
 5. Create rectangle
 POST 
-/restfull-service/rest/rectangle/create
+/restfull-service/rest/rectangles
 Content-Type=application/json
 JSON={
   "width": 3,
@@ -34,11 +34,11 @@ JSON={
 ------------------------------------------
 6. Get rectangle
 GET
-/restfull-service/rest/rectangle/5
+/restfull-service/rest/rectangles/5
 ------------------------------------------
 7. Update rectangle
 PUT
-/restfull-service/rest/rectangle/update
+/restfull-service/rest/rectangles/5
 Content-Type=application/json
 JSON={
   "id":5,
@@ -47,11 +47,11 @@ JSON={
 ------------------------------------------
 8. Delete rectangle
 DELETE
-/localhost:8080/restfull-service/rest/rectangle/5
+/localhost:8080/restfull-service/rest/rectangles/5
 ------------------------------------------
 9. Create triangle
 POST
-/restfull-service/rest/triangle/create
+/restfull-service/rest/triangles
 Content-Type=application/json
 JSON={
   "base": 5,
@@ -60,11 +60,11 @@ JSON={
 ------------------------------------------
 10. Get triangle
 GET
-/restfull-service/rest/triangle/8
+/restfull-service/rest/triangles/8
 ------------------------------------------
 11. Update triangle
 PUT
-/restfull-service/rest/triangle/update
+/restfull-service/rest/triangles/8
 Content-Type=application/json
 JSON={
   "id":8,
@@ -73,11 +73,11 @@ JSON={
 ------------------------------------------
 12. Delete triangle
 DELETE
-/restfull-service/rest/triangle/8
+/restfull-service/rest/triangles/8
 ------------------------------------------
 13. Get list of squares for particular shapes
 POST
-/restfull-service/rest/shape/square
+/restfull-service/rest/shapes/squares
 Content-Type=application/json
 JSON={
   "ids":
