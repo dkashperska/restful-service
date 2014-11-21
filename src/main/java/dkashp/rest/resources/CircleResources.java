@@ -18,7 +18,7 @@ import dkashp.rest.dto.Circle;
 import dkashp.rest.hibernate.utils.HibernateUtil;
 import dkashp.rest.response.RestResponse;
 
-@Path("circle")
+@Path("circles")
 public class CircleResources{
 
 	Logger logger = LoggerFactory.getLogger(CircleResources.class);
@@ -53,7 +53,6 @@ public class CircleResources{
 	}
 
 	@POST
-	@Path("create")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Circle> createCircle(Circle circle) {
@@ -77,22 +76,22 @@ public class CircleResources{
 	}
 	
 	@PUT
-	@Path("update")
+	@Path("{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public RestResponse<Circle> updateCircle(Circle circle){
+	public RestResponse<Circle> updateCircle(@PathParam(value = "id") int id, Circle circle){
 		logger.debug("Method updateCircle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Circle> response = new RestResponse<Circle>();
 		Circle oldCircle = null;
 		try{
 			session.beginTransaction();
-			if(circle.getId() != 0){
-				oldCircle = (Circle) session.get(Circle.class, circle.getId());
+			if(id != 0){
+				oldCircle = (Circle) session.get(Circle.class, id);
 				if(oldCircle == null){
-					logger.error("There is no shape with id {}", circle.getId());
+					logger.error("There is no shape with id {}", id);
 					response.setStatus("400");
-					response.setMessage("There is no shape with id=" + circle.getId());
+					response.setMessage("There is no shape with id=" + id);
 					return response;
 				} else {
 				if (circle.getRadius() != 0) {
@@ -103,15 +102,15 @@ public class CircleResources{
 				if (circle.getSquare() != 0) {
 					oldCircle.setSquare(circle.getSquare());
 				}
-				logger.debug("Update shape with id {}", circle.getId());
+				logger.debug("Update shape with id {}", id);
 				response.setStatus("200");
 				response.setMessage("Shape updated");
 				response.setObject(oldCircle);
 			}
 			} else{
-				logger.error("There is no id");
+				logger.error("Wrong request. There is no id");
 				response.setStatus("400");
-				response.setMessage("There is no id");
+				response.setMessage("Wrong request. There is no id");
 			}
 		} finally{
 			session.getTransaction().commit();

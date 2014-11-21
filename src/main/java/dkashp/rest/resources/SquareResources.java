@@ -16,11 +16,11 @@ import dkashp.rest.dto.ShapeIds;
 import dkashp.rest.hibernate.utils.HibernateUtil;
 import dkashp.rest.response.RestResponseForSquare;
 
-@Path("shape")
+@Path("shapes")
 public class SquareResources {
 	
 	@POST
-	@Path("square")
+	@Path("squares")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponseForSquare<Double> getSquares(ShapeIds ids){

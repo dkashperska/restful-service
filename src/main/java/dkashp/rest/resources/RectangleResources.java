@@ -18,7 +18,7 @@ import dkashp.rest.dto.Rectangle;
 import dkashp.rest.hibernate.utils.HibernateUtil;
 import dkashp.rest.response.RestResponse;
 
-@Path("rectangle")
+@Path("rectangles")
 public class RectangleResources {
 	
 	Logger logger = LoggerFactory.getLogger(RectangleResources.class);
@@ -53,7 +53,6 @@ public class RectangleResources {
 	}
 	
 	@POST
-	@Path("create")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Rectangle> createRectangle(Rectangle rectangle) {
@@ -77,10 +76,10 @@ public class RectangleResources {
 	}
 	
 	@PUT
-	@Path("update")
+	@Path("{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public RestResponse<Rectangle> updateRectangle(Rectangle rectangle){
+	public RestResponse<Rectangle> updateRectangle(@PathParam("id") int id, Rectangle rectangle){
 		logger.debug("Method updateRectangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Rectangle> response = new RestResponse<Rectangle>();
@@ -88,12 +87,12 @@ public class RectangleResources {
 		double square;
 		try{
 			session.beginTransaction();
-			if(rectangle.getId() != 0){
-				oldRectangle = (Rectangle) session.get(Rectangle.class, rectangle.getId());
+			if(id != 0){
+				oldRectangle = (Rectangle) session.get(Rectangle.class, id);
 				if(oldRectangle == null){
-					logger.error("There is no shape with id {}", rectangle.getId());
+					logger.error("There is no shape with id {}", id);
 					response.setStatus("400");
-					response.setMessage("There is no shape with id=" + rectangle.getId());
+					response.setMessage("There is no shape with id=" + id);
 					return response;
 				} else {
 					if(rectangle.getWidth() != 0){
@@ -113,15 +112,15 @@ public class RectangleResources {
 					if (rectangle.getSquare() != 0) {
 						oldRectangle.setSquare(rectangle.getSquare());
 					}
-					logger.debug("Update shape with id {}", rectangle.getId());
+					logger.debug("Update shape with id {}", id);
 					response.setStatus("200");
 					response.setMessage("Shape updated");
 					response.setObject(oldRectangle);
 			}
 			} else{
-				logger.error("There is no id ");
+				logger.error("Wrong request. There is no id ");
 				response.setStatus("400");
-				response.setMessage("There is no id");
+				response.setMessage("Wrong request. There is no id");
 			}
 		} finally{
 			session.getTransaction().commit();
