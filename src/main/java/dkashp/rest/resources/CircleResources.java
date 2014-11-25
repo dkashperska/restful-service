@@ -27,7 +27,7 @@ public class CircleResources{
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Circle> getCircle(@PathParam("id") int id) {
-		logger.debug("Method getCircle starts");
+		logger.info("Method getCircle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Circle> response = new RestResponse<Circle>();
 		Circle circle;
@@ -40,7 +40,7 @@ public class CircleResources{
 				response.setMessage("There is no shape with id=" + id);
 				return response;
 			} else {
-				logger.debug("Get shape with id {}", id);
+				logger.info("Get shape with id {}", id);
 				response.setStatus("200");
 				response.setMessage("Shape exist");
 				response.setObject(circle);
@@ -56,7 +56,7 @@ public class CircleResources{
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Circle> createCircle(Circle circle) {
-		logger.debug("Method createCircle starts");
+		logger.info("Method createCircle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Circle> response = new RestResponse<Circle>();
 		try{
@@ -64,7 +64,7 @@ public class CircleResources{
 			double square = Math.pow(circle.getRadius(), 2)*Math.PI;
 			circle.setSquare(square);
 			session.save(circle);
-			logger.debug("Create shape with id {}", circle.getId());
+			logger.info("Create shape with id {}", circle.getId());
 			response.setStatus("200");
 			response.setMessage("Shape created");
 			response.setObject(circle);
@@ -80,7 +80,7 @@ public class CircleResources{
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Circle> updateCircle(@PathParam(value = "id") int id, Circle circle){
-		logger.debug("Method updateCircle starts");
+		logger.info("Method updateCircle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Circle> response = new RestResponse<Circle>();
 		Circle oldCircle = null;
@@ -102,7 +102,7 @@ public class CircleResources{
 				if (circle.getSquare() != 0) {
 					oldCircle.setSquare(circle.getSquare());
 				}
-				logger.debug("Update shape with id {}", id);
+				logger.info("Update shape with id {}", id);
 				response.setStatus("200");
 				response.setMessage("Shape updated");
 				response.setObject(oldCircle);
@@ -123,7 +123,7 @@ public class CircleResources{
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Circle> removeCircle(@PathParam("id") int id){
-		logger.debug("Method removeCircle starts");
+		logger.info("Method removeCircle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Circle> response = new RestResponse<Circle>();
 		Circle circle;
@@ -136,7 +136,7 @@ public class CircleResources{
 				response.setMessage("There is no shape with id=" + id);
 				return response;
 			} else {
-				logger.debug("Remove shape with id {}", id);
+				logger.info("Remove shape with id {}", id);
 				response.setStatus("200");
 				response.setMessage("Shape deleted");
 			}

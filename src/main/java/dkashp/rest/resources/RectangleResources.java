@@ -27,7 +27,7 @@ public class RectangleResources {
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Rectangle> getRectangle(@PathParam("id") int id) {
-		logger.debug("Method getRectangle starts");
+		logger.info("Method getRectangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Rectangle> response = new RestResponse<Rectangle>();
 		Rectangle rectangle;
@@ -40,7 +40,7 @@ public class RectangleResources {
 				response.setMessage("There is no shape with id=" + id);
 				return response;
 			} else {
-				logger.debug("Get shape with id {}", id);
+				logger.info("Get shape with id {}", id);
 				response.setStatus("200");
 				response.setMessage("Shape exist");
 				response.setObject(rectangle);
@@ -56,7 +56,7 @@ public class RectangleResources {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Rectangle> createRectangle(Rectangle rectangle) {
-		logger.debug("Method createRectangle starts");
+		logger.info("Method createRectangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Rectangle> response = new RestResponse<Rectangle>();
 		try{
@@ -64,7 +64,7 @@ public class RectangleResources {
 			double square = rectangle.getLength()*rectangle.getWidth();
 			rectangle.setSquare(square);
 			session.save(rectangle);
-			logger.debug("Create shape with id {}", rectangle.getId());
+			logger.info("Create shape with id {}", rectangle.getId());
 			response.setStatus("200");
 			response.setMessage("Shape created");
 			response.setObject(rectangle);
@@ -80,7 +80,7 @@ public class RectangleResources {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Rectangle> updateRectangle(@PathParam("id") int id, Rectangle rectangle){
-		logger.debug("Method updateRectangle starts");
+		logger.info("Method updateRectangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Rectangle> response = new RestResponse<Rectangle>();
 		Rectangle oldRectangle = null;
@@ -112,7 +112,7 @@ public class RectangleResources {
 					if (rectangle.getSquare() != 0) {
 						oldRectangle.setSquare(rectangle.getSquare());
 					}
-					logger.debug("Update shape with id {}", id);
+					logger.info("Update shape with id {}", id);
 					response.setStatus("200");
 					response.setMessage("Shape updated");
 					response.setObject(oldRectangle);
@@ -133,7 +133,7 @@ public class RectangleResources {
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Rectangle> removeRectangle(@PathParam("id") int id){
-		logger.debug("Method removeRectangle starts");
+		logger.info("Method removeRectangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Rectangle> response = new RestResponse<Rectangle>();
 		Rectangle rectangle;
@@ -146,7 +146,7 @@ public class RectangleResources {
 				response.setMessage("There is no shape with id=" + id);
 				return response;
 			} else {
-				logger.debug("Remove shape with id {}", id);
+				logger.info("Remove shape with id {}", id);
 				response.setStatus("200");
 				response.setMessage("Shape deleted");
 			}

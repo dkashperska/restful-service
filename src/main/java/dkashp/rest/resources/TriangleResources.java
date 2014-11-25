@@ -27,7 +27,7 @@ public class TriangleResources {
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Triangle> getTriangle(@PathParam("id") int id) {
-		logger.debug("Method getTriangle starts");
+		logger.info("Method getTriangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Triangle> response = new RestResponse<Triangle>();
 		Triangle triangle;
@@ -40,7 +40,7 @@ public class TriangleResources {
 				response.setMessage("There is no shape with id=" + id);
 				return response;
 			} else {
-				logger.debug("Get shape with id {}", id);
+				logger.info("Get shape with id {}", id);
 				response.setStatus("200");
 				response.setMessage("Shape exist");
 				response.setObject(triangle);
@@ -56,7 +56,7 @@ public class TriangleResources {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Triangle> createTriangle(Triangle triangle) {
-		logger.debug("Method createTriangle starts");
+		logger.info("Method createTriangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Triangle> response = new RestResponse<Triangle>();
 		try{
@@ -64,7 +64,7 @@ public class TriangleResources {
 			double square = 0.5 * triangle.getBase() * triangle.getHeight();
 			triangle.setSquare(square);
 			session.save(triangle);
-			logger.debug("Create shape with id {}", triangle.getId());
+			logger.info("Create shape with id {}", triangle.getId());
 			response.setStatus("200");
 			response.setMessage("Shape created");
 			response.setObject(triangle);
@@ -80,7 +80,7 @@ public class TriangleResources {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Triangle> updateTriangle(@PathParam("id") int id, Triangle triangle){
-		logger.debug("Method updateTriangle starts");
+		logger.info("Method updateTriangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Triangle> response = new RestResponse<Triangle>();
 		Triangle oldTriangle = null;
@@ -112,7 +112,7 @@ public class TriangleResources {
 					if (triangle.getSquare() != 0) {
 						oldTriangle.setSquare(triangle.getSquare());
 					}
-					logger.debug("Update shape with id {}", id);
+					logger.info("Update shape with id {}", id);
 					response.setStatus("200");
 					response.setMessage("Shape updated");
 					response.setObject(oldTriangle);
@@ -133,7 +133,7 @@ public class TriangleResources {
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public RestResponse<Triangle> removeTriangle(@PathParam("id") int id){
-		logger.debug("Method removeTriangle starts");
+		logger.info("Method removeTriangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		RestResponse<Triangle> response = new RestResponse<Triangle>();
 		Triangle triangle;
@@ -146,7 +146,7 @@ public class TriangleResources {
 				response.setMessage("There is no shape with id=" + id);
 				return response;
 			} else {
-				logger.debug("Remove shape with id {}", id);
+				logger.info("Remove shape with id {}", id);
 				response.setStatus("200");
 				response.setMessage("Shape deleted");
 			}
