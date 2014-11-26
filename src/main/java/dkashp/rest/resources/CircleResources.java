@@ -8,144 +8,162 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dkashp.rest.dto.Circle;
+import dkashp.rest.errorhandling.AppException;
 import dkashp.rest.hibernate.utils.HibernateUtil;
-import dkashp.rest.response.RestResponse;
 
 @Path("circles")
 public class CircleResources{
 
 	Logger logger = LoggerFactory.getLogger(CircleResources.class);
+	@Context
+	UriInfo uri;
 	
 	@GET
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public RestResponse<Circle> getCircle(@PathParam("id") int id) {
+	public Response getCircle(@PathParam("id") int id) throws AppException{
 		logger.info("Method getCircle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
-		RestResponse<Circle> response = new RestResponse<Circle>();
 		Circle circle;
 		try{
 			session.beginTransaction();
 			circle = (Circle) session.get(Circle.class, id);
 			if(circle == null){
-				logger.error("There is no shape with id {}", id);
-				response.setStatus("400");
-				response.setMessage("There is no shape with id=" + id);
-				return response;
+				logger.error("The shape with the id {} was not found in database", id);
+				throw new AppException(Response.Status.NOT_FOUND.getStatusCode(), 
+						"The shape your requested with the id " + id +  " was not found in database", 
+						"Verify the existence of the shape with the id " + id + " in database");
 			} else {
-				logger.info("Get shape with id {}", id);
-				response.setStatus("200");
-				response.setMessage("Shape exist");
-				response.setObject(circle);
+				logger.info("The shape with the id {} exists", id);
+				return Response.status(200).entity(circle).build();
 			}
 		} finally{
 			session.getTransaction().commit();
 			session.close();
 		}
-		return response;
 	}
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public RestResponse<Circle> createCircle(Circle circle) {
+	public Response createCircle(Circle circle) throws AppException{
 		logger.info("Method createCircle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
-		RestResponse<Circle> response = new RestResponse<Circle>();
 		try{
 			session.beginTransaction();
 			double square = Math.pow(circle.getRadius(), 2)*Math.PI;
 			circle.setSquare(square);
 			session.save(circle);
-			logger.info("Create shape with id {}", circle.getId());
-			response.setStatus("200");
-			response.setMessage("Shape created");
-			response.setObject(circle);
+			logger.info("A new shape with the id {} has been created", circle.getId());
+			return Response.status(Response.Status.CREATED).entity("A new shape has been created").
+					header("Location", generateLocation(circle.getId())).build();
 		} finally{
 			session.getTransaction().commit();
 			session.close();
 		}
-		return response;
 	}
 	
 	@PUT
 	@Path("{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public RestResponse<Circle> updateCircle(@PathParam(value = "id") int id, Circle circle){
-		logger.info("Method updateCircle starts");
+	public Response updateFullyCircle(@PathParam("id") int id, Circle circle) throws AppException{
+		logger.info("Method updateFullyCircle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
-		RestResponse<Circle> response = new RestResponse<Circle>();
-		Circle oldCircle = null;
+		circle.setId(id);
+		if (isFullUpdate(circle)){
+			throw new AppException(Response.Status.BAD_REQUEST.getStatusCode(), 
+					"Please specify all properties for Full UPDATE",
+					"required properties - radius, square");
+		}
 		try{
 			session.beginTransaction();
-			if(id != 0){
-				oldCircle = (Circle) session.get(Circle.class, id);
-				if(oldCircle == null){
-					logger.error("There is no shape with id {}", id);
-					response.setStatus("400");
-					response.setMessage("There is no shape with id=" + id);
-					return response;
-				} else {
-				if (circle.getRadius() != 0) {
-					oldCircle.setRadius(circle.getRadius());
-					double square = Math.pow(circle.getRadius(), 2) * Math.PI;
-					oldCircle.setSquare(square);
-				}
-				if (circle.getSquare() != 0) {
-					oldCircle.setSquare(circle.getSquare());
-				}
-				logger.info("Update shape with id {}", id);
-				response.setStatus("200");
-				response.setMessage("Shape updated");
-				response.setObject(oldCircle);
-			}
-			} else{
-				logger.error("Wrong request. There is no id");
-				response.setStatus("400");
-				response.setMessage("Wrong request. There is no id");
-			}
+			session.update(circle);
+			return Response.status(Response.Status.OK).entity("The shape you specified has been fully updated")
+					.header("Location", generateLocation(circle.getId())).build();
+		} catch (HibernateException e){
+			throw new AppException(Response.Status.NOT_FOUND.getStatusCode(),
+					"The resource you are trying to update does not exist in the database",
+					"Please verify existence of data in the database for the id - " + circle.getId());
 		} finally{
 			session.getTransaction().commit();
 			session.close();
 		}
-		return response;
+	}
+	
+	@POST
+	@Path("{id}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response partialUpdateCircle(@PathParam("id") int id, Circle circle) throws AppException{
+		logger.info("Method partialUpdateCircle starts");
+		Session session = HibernateUtil.getSessionFactory().openSession();
+		Circle oldCircle = null;
+		try{
+			session.beginTransaction();
+			oldCircle = (Circle) session.get(Circle.class, id);
+			if(oldCircle == null){
+				throw new AppException(Response.Status.NOT_FOUND.getStatusCode(),
+						"The resource you are trying to update does not exist in the database",
+						"Please verify existence of data in the database for the id - " + id);
+			}
+			if (circle.getRadius() != 0) {
+				oldCircle.setRadius(circle.getRadius());
+				double square = Math.pow(circle.getRadius(), 2) * Math.PI;
+				oldCircle.setSquare(square);
+			}
+			if (circle.getSquare() != 0) {
+				oldCircle.setSquare(circle.getSquare());
+			}
+			return Response.status(Response.Status.OK).entity("The shape you specified has been successfully updated").build();
+		} finally{
+			session.getTransaction().commit();
+			session.close();
+		}
 	}
 	
 	@DELETE
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public RestResponse<Circle> removeCircle(@PathParam("id") int id){
+	public Response removeCircle(@PathParam("id") int id) throws AppException{
 		logger.info("Method removeCircle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
-		RestResponse<Circle> response = new RestResponse<Circle>();
 		Circle circle;
 		try{
 			session.beginTransaction();
 			circle = (Circle) session.get(Circle.class, id);
 			if(circle == null){
-				logger.error("There is no shape with id {}", id);
-				response.setStatus("400");
-				response.setMessage("There is no shape with id=" + id);
-				return response;
-			} else {
-				logger.info("Remove shape with id {}", id);
-				response.setStatus("200");
-				response.setMessage("Shape deleted");
+				throw new AppException(Response.Status.NOT_FOUND.getStatusCode(),
+						"The resource you are trying to delete does not exist in the database",
+						"Please verify existence of data in the database for the id - " + id);
 			}
+			logger.info("Remove shape with id {}", id);
 			session.delete(circle);
+			return Response.status(Response.Status.NO_CONTENT).entity("Shape successfully removed from database").build();
 		} finally{
 			session.getTransaction().commit();
 			session.close();
 		}
-		return response;
 	}
 	
+	private boolean isFullUpdate(Circle circle){
+		return circle.getId() == 0
+				|| circle.getRadius() == 0
+				|| circle.getSquare() == 0;
+	}
+	
+	private String generateLocation(int id){
+		return uri.getAbsolutePath() + "/" + id;
+	}
 }
