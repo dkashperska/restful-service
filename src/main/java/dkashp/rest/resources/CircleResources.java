@@ -90,9 +90,11 @@ public class CircleResources{
 		try{
 			session.beginTransaction();
 			session.update(circle);
+			logger.info("The shape with the id {} has been updated fully" + id);
 			return Response.status(Response.Status.OK).entity("The shape you specified has been fully updated")
 					.header("Location", generateLocation(circle.getId())).build();
 		} catch (HibernateException e){
+			logger.error("The shape with the id {} was not found in database", id);
 			throw new AppException(Response.Status.NOT_FOUND.getStatusCode(),
 					"The resource you are trying to update does not exist in the database",
 					"Please verify existence of data in the database for the id - " + circle.getId());
@@ -114,6 +116,7 @@ public class CircleResources{
 			session.beginTransaction();
 			oldCircle = (Circle) session.get(Circle.class, id);
 			if(oldCircle == null){
+				logger.error("The shape with the id {} was not found in database", id);
 				throw new AppException(Response.Status.NOT_FOUND.getStatusCode(),
 						"The resource you are trying to update does not exist in the database",
 						"Please verify existence of data in the database for the id - " + id);
@@ -126,6 +129,7 @@ public class CircleResources{
 			if (circle.getSquare() != 0) {
 				oldCircle.setSquare(circle.getSquare());
 			}
+			logger.info("The shape with the id {} has been updated partially" + id);
 			return Response.status(Response.Status.OK).entity("The shape you specified has been successfully updated").build();
 		} finally{
 			session.getTransaction().commit();
@@ -144,6 +148,7 @@ public class CircleResources{
 			session.beginTransaction();
 			circle = (Circle) session.get(Circle.class, id);
 			if(circle == null){
+				logger.error("The shape with the id {} was not found in database", id);
 				throw new AppException(Response.Status.NOT_FOUND.getStatusCode(),
 						"The resource you are trying to delete does not exist in the database",
 						"Please verify existence of data in the database for the id - " + id);

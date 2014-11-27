@@ -8,153 +8,183 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dkashp.rest.dto.Triangle;
+import dkashp.rest.errorhandling.AppException;
 import dkashp.rest.hibernate.utils.HibernateUtil;
-import dkashp.rest.response.RestResponse;
 
 @Path("triangles")
 public class TriangleResources {
 
 	Logger logger = LoggerFactory.getLogger(TriangleResources.class);
 	
+	@Context
+	UriInfo uri;
+	
 	@GET
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public RestResponse<Triangle> getTriangle(@PathParam("id") int id) {
+	public Response getTriangle(@PathParam("id") int id) throws AppException{
 		logger.info("Method getTriangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
-		RestResponse<Triangle> response = new RestResponse<Triangle>();
 		Triangle triangle;
 		try{
 			session.beginTransaction();
 			triangle = (Triangle) session.get(Triangle.class, id);
 			if(triangle == null){
-				logger.error("There is no shape with id {}", id);
-				response.setStatus("400");
-				response.setMessage("There is no shape with id=" + id);
-				return response;
+				logger.error("The shape with the id {} was not found in database", id);
+				throw new AppException(Response.Status.NOT_FOUND.getStatusCode(), 
+						"The shape your requested with the id " + id +  " was not found in database", 
+						"Verify the existence of the shape with the id " + id + " in database");
 			} else {
-				logger.info("Get shape with id {}", id);
-				response.setStatus("200");
-				response.setMessage("Shape exist");
-				response.setObject(triangle);
+				logger.info("The shape with the id {} exists", id);
+				return Response.status(200).entity(triangle).build();
 			}
 		} finally{
 			session.getTransaction().commit();
 			session.close();
 		}
-		return response;
 	}
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public RestResponse<Triangle> createTriangle(Triangle triangle) {
+	public Response createTriangle(Triangle triangle) throws AppException{
 		logger.info("Method createTriangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
-		RestResponse<Triangle> response = new RestResponse<Triangle>();
 		try{
 			session.beginTransaction();
 			double square = 0.5 * triangle.getBase() * triangle.getHeight();
 			triangle.setSquare(square);
 			session.save(triangle);
-			logger.info("Create shape with id {}", triangle.getId());
-			response.setStatus("200");
-			response.setMessage("Shape created");
-			response.setObject(triangle);
+			logger.info("A new shape with the id {} has been created", triangle.getId());
+			return Response.status(Response.Status.CREATED).entity("A new shape has been created").
+					header("Location", generateLocation(triangle.getId())).build();
 		} finally{
 			session.getTransaction().commit();
 			session.close();
 		}
-		return response;
 	}
 	
 	@PUT
 	@Path("{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public RestResponse<Triangle> updateTriangle(@PathParam("id") int id, Triangle triangle){
-		logger.info("Method updateTriangle starts");
+	public Response updateFullyTriangle(@PathParam("id") int id, Triangle triangle) throws AppException{
+		logger.info("Method updateFullyTriangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
-		RestResponse<Triangle> response = new RestResponse<Triangle>();
-		Triangle oldTriangle = null;
-		double square;
+		triangle.setId(id);
+		if (isFullUpdate(triangle)){
+			throw new AppException(Response.Status.BAD_REQUEST.getStatusCode(), 
+					"Please specify all properties for Full UPDATE",
+					"required properties - base, height, square");
+		}
 		try{
 			session.beginTransaction();
-			if(id != 0){
-				oldTriangle = (Triangle) session.get(Triangle.class, id);
-				if(oldTriangle == null){
-					logger.error("There is no shape with id {}", id);
-					response.setStatus("400");
-					response.setMessage("There is no shape with id=" + id);
-					return response;
-				} else {
-					if(triangle.getBase() != 0){
-						oldTriangle.setBase(triangle.getBase());
-						square = 0.5 * triangle.getBase() * oldTriangle.getHeight();
-						oldTriangle.setSquare(square);
-					}
-					if(triangle.getHeight() != 0){
-						oldTriangle.setHeight(triangle.getHeight());
-						square = 0.5 * triangle.getHeight() * oldTriangle.getBase();
-						oldTriangle.setSquare(square);
-					}
-					if (triangle.getBase() != 0 && triangle.getHeight() != 0) {
-						square = 0.5 * triangle.getBase() * triangle.getHeight();
-						oldTriangle.setSquare(square);
-					}
-					if (triangle.getSquare() != 0) {
-						oldTriangle.setSquare(triangle.getSquare());
-					}
-					logger.info("Update shape with id {}", id);
-					response.setStatus("200");
-					response.setMessage("Shape updated");
-					response.setObject(oldTriangle);
-			}
-			} else{
-				logger.error("Wrong request. There is no id");
-				response.setStatus("400");
-				response.setMessage("Wrong request. There is no id");
-			}
+			session.update(triangle);
+			logger.info("The shape with the id {} has been updated fully" + id);
+			return Response.status(Response.Status.OK).entity("The shape you specified has been fully updated")
+					.header("Location", generateLocation(triangle.getId())).build();
+		} catch (HibernateException e){
+			logger.error("The shape with the id {} was not found in database", id);
+			throw new AppException(Response.Status.NOT_FOUND.getStatusCode(),
+					"The resource you are trying to update does not exist in the database",
+					"Please verify existence of data in the database for the id - " + triangle.getId());
 		} finally{
 			session.getTransaction().commit();
 			session.close();
 		}
-		return response;
+	}
+	
+	@POST
+	@Path("{id}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response partialUpdateTriangle(@PathParam("id") int id, Triangle triangle) throws AppException{
+		logger.info("Method partialUpdateTriangle starts");
+		Session session = HibernateUtil.getSessionFactory().openSession();
+		Triangle oldTriangle = null;
+		double square;
+		try {
+			session.beginTransaction();
+			oldTriangle = (Triangle) session.get(Triangle.class, id);
+			if (oldTriangle == null) {
+				logger.error("The shape with the id {} was not found in database", id);
+				throw new AppException(
+						Response.Status.NOT_FOUND.getStatusCode(),
+						"The resource you are trying to update does not exist in the database",
+						"Please verify existence of data in the database for the id - " + id);
+			}
+			if (triangle.getBase() != 0) {
+				oldTriangle.setBase(triangle.getBase());
+				square = 0.5 * triangle.getBase() * oldTriangle.getHeight();
+				oldTriangle.setSquare(square);
+			}
+			if (triangle.getHeight() != 0) {
+				oldTriangle.setHeight(triangle.getHeight());
+				square = 0.5 * triangle.getHeight() * oldTriangle.getBase();
+				oldTriangle.setSquare(square);
+			}
+			if (triangle.getBase() != 0 && triangle.getHeight() != 0) {
+				square = 0.5 * triangle.getBase() * triangle.getHeight();
+				oldTriangle.setSquare(square);
+			}
+			if (triangle.getSquare() != 0) {
+				oldTriangle.setSquare(triangle.getSquare());
+			}
+			logger.info("The shape with the id {} has been updated partially" + id);
+			return Response
+					.status(Response.Status.OK)
+					.entity("The shape you specified has been successfully updated")
+					.build();
+		} finally {
+			session.getTransaction().commit();
+			session.close();
+		}
 	}
 
 	@DELETE
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public RestResponse<Triangle> removeTriangle(@PathParam("id") int id){
+	public Response removeTriangle(@PathParam("id") int id) throws AppException{
 		logger.info("Method removeTriangle starts");
 		Session session = HibernateUtil.getSessionFactory().openSession();
-		RestResponse<Triangle> response = new RestResponse<Triangle>();
 		Triangle triangle;
 		try{
 			session.beginTransaction();
 			triangle = (Triangle) session.get(Triangle.class, id);
 			if(triangle == null){
-				logger.error("There is no shape with id {}", id);
-				response.setStatus("400");
-				response.setMessage("There is no shape with id=" + id);
-				return response;
-			} else {
-				logger.info("Remove shape with id {}", id);
-				response.setStatus("200");
-				response.setMessage("Shape deleted");
+				logger.error("The shape with the id {} was not found in database", id);
+				throw new AppException(Response.Status.NOT_FOUND.getStatusCode(),
+						"The resource you are trying to delete does not exist in the database",
+						"Please verify existence of data in the database for the id - " + id);
 			}
+			logger.info("Remove shape with id {}", id);
 			session.delete(triangle);
+			return Response.status(Response.Status.NO_CONTENT).entity("Shape successfully removed from database").build();
 		} finally{
 			session.getTransaction().commit();
 			session.close();
 		}
-		return response;
+	}
+	
+	private boolean isFullUpdate(Triangle triangle){
+		return triangle.getId() == 0
+				|| triangle.getBase() == 0
+				|| triangle.getHeight() == 0
+				|| triangle.getSquare() == 0;
+	}
+	
+	private String generateLocation(int id){
+		return uri.getAbsolutePath() + "/" + id;
 	}
 }
